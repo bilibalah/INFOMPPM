@@ -32,7 +32,7 @@ def hybrid_engine(df, user_df, content_similarity_matrix, alpha=0.5):
     users.loc[users['save'] == 'yes', 'interaction_weight'] = 2
     #filter to only include shows we actually loaded
     valid_titles = df['title'].tolist()
-    filtered_users = user_df[user_df['title'].isin(valid_titles)]
+    filtered_users = users[user_df['title'].isin(valid_titles)]
     #collaboraitve matrix
     user_item_matrix = filtered_users.pivot_table(
     index='title', 
