@@ -1,1 +1,17 @@
 synthetic_view_history_full.csv
+# Python Virtual Environments
+.venv/
+venv/
+env/
+
+# Data files
+*.pkl
+*.csv
+
+# Python cache files 
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# System files
+.DS_Store
