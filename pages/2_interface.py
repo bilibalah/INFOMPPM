@@ -20,6 +20,8 @@ st.write(f"Value: {relevance_serendipity:.1f}")
 
 st.subheader("How do the recommendations work?")
 
+st.write("The recommendation process involves several steps to ensure that the content you receive is tailored to your preferences while maintaining a balance between relevance and diversity. Here's a breakdown of the process:")
+
 
 # Create a flowchart to illustrate the recommendation process
 graph = graphviz.Digraph()
