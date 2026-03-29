@@ -11,7 +11,17 @@ files_to_load = [
     'data/documentaries.pkl',
     'data/comedy.pkl',
     'data/sports.pkl',
-    'data/science-and-nature.pkl'
+    'data/science-and-nature.pkl',
+    'data/arts.pkl',
+    'data/cbbc.pkl',
+    'data/entertainment.pkl',
+    'data/films.pkl',
+    'data/from-the-archives.pkl',
+    'data/history.pkl',
+    'data/lifestyle.pkl',
+    'data/music.pkl',
+    'data/signed.pkl'
+
 ]
 df_list = [pd.read_pickle(file) for file in files_to_load]
 df = pd.concat(df_list, ignore_index=True)
