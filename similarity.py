@@ -11,7 +11,17 @@ files_to_load = [
     'data/documentaries.pkl',
     'data/comedy.pkl',
     'data/sports.pkl',
-    'data/science-and-nature.pkl'
+    'data/science-and-nature.pkl',
+    'data/arts.pkl',
+    'data/cbbc.pkl',
+    'data/entertainment.pkl',
+    'data/films.pkl',
+    'data/from-the-archives.pkl',
+    'data/history.pkl',
+    'data/lifestyle.pkl',
+    'data/music.pkl',
+    'data/signed.pkl'
+
 ]
 df_list = [pd.read_pickle(file) for file in files_to_load]
 df = pd.concat(df_list, ignore_index=True)
@@ -55,4 +65,51 @@ def mmr_recommendations(target_user_id, user_data, df, fairness_matrix, content_
     saved_shows = user_history[user_history['save'] == 'yes']['title'].tolist()
 
     if not saved_shows:
-        return f"cold start required for user"
+        return "Cold start required for user"
+
+    # get indices of shows the user has already seen
+    seen_titles = user_history['title'].tolist()
+    seen_indices = df[df['title'].isin(seen_titles)].index.tolist()
+
+    # get indices of saved shows to use as the query
+    saved_indices = df[df['title'].isin(saved_shows)].index.tolist()
+
+    if not saved_indices:
+        return "No saved shows found in catalogue"
+
+    # candidate pool: everything the user hasn't seen
+    candidate_indices = [i for i in df.index if i not in seen_indices]
+
+    if not candidate_indices:
+        return "No unseen candidates available"
+
+    # relevance score: average similarity to saved shows
+    relevance_scores = fairness_matrix[candidate_indices][:, saved_indices].mean(axis=1)
+
+    # MMR loop: iteratively pick the best candidate balancing relevance and diversity
+    selected = []
+    candidate_indices = list(candidate_indices)
+
+    while len(selected) < top_n and candidate_indices:
+        if not selected:
+            # first pick: highest relevance
+            best_idx = candidate_indices[int(np.argmax(relevance_scores))]
+        else:
+            # MMR score: balance relevance vs similarity to already selected
+            mmr_scores = []
+            for i, idx in enumerate(candidate_indices):
+                relevance = relevance_scores[i]
+                # max similarity to already selected items
+                similarity_to_selected = max(
+                    content_matrix[idx][s] for s in selected
+                )
+                mmr = lambda_param * relevance - (1 - lambda_param) * similarity_to_selected
+                mmr_scores.append(mmr)
+            best_idx = candidate_indices[int(np.argmax(mmr_scores))]
+
+        selected.append(best_idx)
+        pos = candidate_indices.index(best_idx)
+        candidate_indices.pop(pos)
+        relevance_scores = np.delete(relevance_scores, pos)
+
+    return df.iloc[selected][['title', 'category', 'description', 'synopsis_small', 'synopsis_large', 'image', 'duration_txt']].reset_index(drop=True)
