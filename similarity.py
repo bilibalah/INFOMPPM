@@ -60,7 +60,7 @@ def hybrid_engine(df, user_df, content_similarity_matrix, alpha=0.5):
     return collab_similarity_matrix, hybrid_similarity_matrix
 
 
-def mmr_recommendations(target_user_id, user_data, df, fairness_matrix, content_matrix, top_n=5, lambda_param=0.5):
+def mmr_recommendations(target_user_id, user_data, df, fairness_matrix, content_matrix, top_n=10, lambda_param=0.5):
     user_history = user_data[user_data['user_id'] == target_user_id]
     saved_shows = user_history[user_history['save'] == 'yes']['title'].tolist()
 
