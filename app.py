@@ -28,7 +28,7 @@ def load_hybrid(_df, _user_df, _content_matrix, alpha):
 df, user_df = load_data()
 content_matrix, tfidf_matrix, tfidf = load_similarity(df)
 
-st.title("Recommendation engine")
+st.title("Your Personalized Recommendations")
 
 # User interface for selecting user and recommendation style
 user_id = st.selectbox("Select user", user_df['user_id'].unique())
