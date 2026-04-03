@@ -18,7 +18,6 @@ synthetic_data = pd.merge(temp, programs[["program_id", "title"]], on="title", h
 
 synthetic_data[["user_id", "program_id", "listen_ratio", "save"]].to_csv("data/view_history.csv", index=False)
 
-
 def similarity_engine(df, text_column='synopsis_large', max_features=500):
     # takes a dataframe and a text columns and returns similarity matrix, tf-idf matrix and vectorizer
     tfidf = TfidfVectorizer(stop_words='english', max_features=max_features)
