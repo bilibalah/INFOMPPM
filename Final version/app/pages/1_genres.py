@@ -14,6 +14,7 @@ def get_genre_recommendations(user_id, selected_genres, lambda_param=0.5):
     results = recommendation_content(user_id, view_history, programs, programs_tfidf, selected_genres, lambda_param)
     return results  # no extra merge needed, recommendation_content already handles it
 
+
 def display_recommendations(results):
     for _, row in results.iterrows():
         save_key = f"save_{row['title']}"
@@ -131,6 +132,19 @@ if selected_genres:
 else:
     st.caption("No genres selected yet.")
 
+# if st.button("Get recommendations", type="primary", disabled=len(selected_genres) == 0):
+#     with st.spinner("Finding recommendations..."):
+#         results = get_genre_recommendations(
+#             st.session_state.user_id,
+#             selected_genres,
+#             st.session_state.lambda_param
+#         )
+#     if results is None or results.empty:
+#         st.info("No recommendations found for the selected genres.")
+#     else:
+#         display_recommendations(results)
+
+
 if st.button("Get recommendations", type="primary", disabled=len(selected_genres) == 0):
     with st.spinner("Finding recommendations..."):
         results = get_genre_recommendations(
@@ -139,6 +153,6 @@ if st.button("Get recommendations", type="primary", disabled=len(selected_genres
             st.session_state.lambda_param
         )
     if results is None or results.empty:
-        st.info("No recommendations found for the selected genres.")
+        st.info("Not enough watch history for the selected genres. Try selecting more genres or watch some content first.")
     else:
         display_recommendations(results)

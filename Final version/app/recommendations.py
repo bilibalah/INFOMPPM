@@ -14,10 +14,15 @@ def user_profile_def(user_id, view_history, programs, programs_tfidf, genres):
         how="left"
     )
 
-    if len(view_history_user[view_history_user['category'].isin(genres)]) == 0:
-        genres = view_history_user["category"].dropna().unique().tolist()
+    # if no watch history in selected genres, fall back to all watched genres
+    # but keep the selected genres for candidate filtering
+    watched_in_genres = view_history_user[view_history_user['category'].isin(genres)]
+    if len(watched_in_genres) == 0:
+        profile_genres = view_history_user["category"].dropna().unique().tolist()
+    else:
+        profile_genres = genres  # use selected genres for profile building
 
-    view_history_user = view_history_user.loc[view_history_user['category'].isin(genres)]
+    view_history_user = view_history_user.loc[view_history_user['category'].isin(profile_genres)]
     view_history_user = view_history_user.drop('category', axis=1)
 
     user_profile = pd.merge(view_history_user, programs_tfidf, on="program_id", how="left")
@@ -216,11 +221,17 @@ def recommendation_content(user_id, view_history, programs, programs_tfidf, genr
     if final_recs.index.name == 'program_id':
         final_recs = final_recs.reset_index()
 
-    final_recs = final_recs.merge(
-        programs[['program_id', 'title', 'category', 'synopsis_small', 'image', 'duration_txt']],
-        on='program_id',
-        how='left'
-    )
+    # columns already present from top_50 merge, just clean up
+    final_recs = final_recs.rename(columns={
+        'title_x': 'title',
+        'category_x': 'category',
+        'synopsis_small_x': 'synopsis_small',
+        'image_x': 'image',
+        'duration_txt_x': 'duration_txt'
+    })
+
+    # drop the duplicate _y columns
+    final_recs = final_recs[[col for col in final_recs.columns if not col.endswith('_y')]]
 
     return final_recs
 
