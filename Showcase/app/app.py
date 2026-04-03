@@ -129,4 +129,6 @@ def recommendation_content(user_id, view_history, programs, programs_tfidf, genr
 
     return final_recs
 
-recommendation_content("U99", pd.read_csv("../data/view_history.csv"), pd.read_csv("../data/programs.csv"), pd.read_csv("../data/programs_tfidf.csv"), ["entertainment"])
+os.chdir("/home/anass/university/msc_applied_data_science/INFOMPPM/INFOMPPM") # Comment it out when you run it
+
+recommendation_content("U99", pd.read_csv("data/view_history.csv"), pd.read_csv("data/programs.csv"), pd.read_csv("data/programs_tfidf.csv"), ["entertainment"])
