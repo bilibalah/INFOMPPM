@@ -57,7 +57,8 @@ def exposure_fairness(top_50_recommendations):
     return top_50_recommendations.sort_values(by="inclusion_score", ascending=False).reset_index(drop=True)
 
 
-def content_diversity(fairness_df, programs_tfidf, top_n=15, lambda_param=0.5):
+def content_diversity(fairness_df, programs_tfidf, user_id, top_n=15, lambda_param=0.5):
+    fairness_df = fairness_df.sort_values(by=user_id, ascending=False).reset_index(drop=True)
     candidate_ids = fairness_df['program_id'].tolist()
 
     if not candidate_ids:
@@ -82,7 +83,7 @@ def content_diversity(fairness_df, programs_tfidf, top_n=15, lambda_param=0.5):
     candidate_ids.remove(first_pick_id)
 
     # Normalize inclusion_score
-    max_score = fairness_df['inclusion_score'].max()
+    max_score = fairness_df[user_id].max()
     max_score = max_score if max_score > 0 else 1 # Prevent division by zero
 
     # 3. mmr
@@ -92,7 +93,7 @@ def content_diversity(fairness_df, programs_tfidf, top_n=15, lambda_param=0.5):
         
         for candidate_id in candidate_ids:
             # RELEVANCE: Pull from inclusion_score
-            raw_relevance = fairness_df.loc[fairness_df['program_id'] == candidate_id, 'inclusion_score'].values[0]
+            raw_relevance = fairness_df.loc[fairness_df['program_id'] == candidate_id, user_id].values[0]
             relevance = raw_relevance / max_score
             
             max_similarity = content_matrix.loc[candidate_id, selected_ids].max()
@@ -125,9 +126,10 @@ def recommendation_content(user_id, view_history, programs, programs_tfidf, genr
 
     exposure = exposure_fairness(top50_programs)
 
-    final_recs = content_diversity(exposure, programs_tfidf, top_n=15, lambda_param=0.5)
+    final_recs = content_diversity(exposure, programs_tfidf, user_id, top_n=15, lambda_param=0.5)
 
     return final_recs
+
 
 os.chdir("/home/anass/university/msc_applied_data_science/INFOMPPM/INFOMPPM") # Comment it out when you run it
 
