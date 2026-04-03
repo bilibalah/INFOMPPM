@@ -12,9 +12,7 @@ def load_recommendation_data():
 def get_genre_recommendations(user_id, selected_genres, lambda_param=0.5):
     view_history, programs, programs_tfidf = load_recommendation_data()
     results = recommendation_content(user_id, view_history, programs, programs_tfidf, selected_genres, lambda_param)
-    # join back to programs to get display columns
-    results = results.merge(programs[['program_id', 'title', 'category', 'synopsis_small', 'image', 'duration_txt']], on='program_id', how='left')
-    return results
+    return results  # no extra merge needed, recommendation_content already handles it
 
 def display_recommendations(results):
     for _, row in results.iterrows():
@@ -63,7 +61,7 @@ def on_save(user_id, title, saved: bool):
 
 # --- page ---
 
-st.title("Select your preferred genres")
+st.title("Get personalized recommendations based on your favorite genres")
 st.write("You'll receive recommendations for the genres you select based on your watch history. If you haven't watched anything yet, we'll use your initial selections to start personalizing your recommendations.")
 
 view_history, programs, programs_tfidf = load_recommendation_data()
