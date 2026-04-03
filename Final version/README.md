@@ -16,6 +16,5 @@ It combines content-based and collaborative filtering recommendation with fairne
 1. Run `syntheticdata.ipynb` to generate the synthetic dataset.
 2. Run `ExposureFairness_calculation.ipynb` to compute the inclusion scores.
 3. Run `data_prep.py` to preprocess the recommendation data.
-4. Run `recommendations.py` to generate the baseline relevance scores.
-5. Navigate to the app folder.
-6. Run `streamlit run main.py` in Terminal to launch the application.
+4. Navigate to the app folder.
+5. Run `streamlit run main.py` in Terminal to launch the application.
