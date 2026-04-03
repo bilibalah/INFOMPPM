@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 from recommendations import recommendation_collaborative
 
 @st.cache_data
@@ -9,13 +10,38 @@ def load_data():
     programs_tfidf = pd.read_csv('../data/programs_tfidf.csv')
     return view_history, programs, programs_tfidf
 
-def on_play(user_id, title):
-    # TODO: log play event to view history
-    pass
+def on_play(user_id, program_id):
+    new_row = pd.DataFrame([{
+        'user_id': user_id,
+        'program_id': program_id,
+        'listen_ratio': round(np.random.uniform(0.0, 1.0), 2),
+        'save': 'no'
+    }])
+    new_row.to_csv('../data/view_history.csv', mode='a', header=False, index=False)
+    load_data.clear()  # clear cache so next load picks up new row
 
-def on_save(user_id, title, saved: bool):
-    # TODO: update save status in view history
-    pass
+def on_save(user_id, program_id, saved: bool):
+    view_history = pd.read_csv('../data/view_history.csv')
+    existing = view_history[(view_history['user_id'] == user_id) & (view_history['program_id'] == program_id)]
+
+    if existing.empty:
+        # not in history yet — append new row
+        new_row = pd.DataFrame([{
+            'user_id': user_id,
+            'program_id': program_id,
+            'listen_ratio': round(np.random.uniform(0.0, 1.0), 2),
+            'save': 'yes' if saved else 'no'
+        }])
+        new_row.to_csv('../data/view_history.csv', mode='a', header=False, index=False)
+    else:
+        # already in history — update save status
+        view_history.loc[
+            (view_history['user_id'] == user_id) & (view_history['program_id'] == program_id),
+            'save'
+        ] = 'yes' if saved else 'no'
+        view_history.to_csv('../data/view_history.csv', index=False)
+
+    load_data.clear()
 
 def display_recommendations(results, user_id):
     for _, row in results.iterrows():
@@ -43,13 +69,13 @@ def display_recommendations(results, user_id):
             btn_col1, btn_col2 = st.columns([1, 1])
             with btn_col1:
                 if st.button("▶ Play", key=f"play_{row['title']}", use_container_width=True):
-                    on_play(st.session_state.user_id, row['title'])
+                    on_play(user_id, row['program_id'])
                     st.toast(f"Playing {show_name.strip()}...")
             with btn_col2:
                 label = "✅ Saved" if st.session_state[save_key] else "🔖 Save"
                 if st.button(label, key=f"btn_{row['title']}", use_container_width=True):
                     st.session_state[save_key] = not st.session_state[save_key]
-                    on_save(st.session_state.user_id, row['title'], st.session_state[save_key])
+                    on_save(user_id, row['program_id'], st.session_state[save_key])
                     st.rerun()
 
         st.divider()
@@ -60,7 +86,6 @@ st.title("Your Personalized Recommendations")
 
 view_history, programs, programs_tfidf = load_data()
 
-# keep user_id in session state so genre page can access it
 if "user_id" not in st.session_state:
     st.session_state.user_id = view_history['user_id'].unique()[0]
 
@@ -70,7 +95,6 @@ st.session_state.user_id = st.selectbox(
     index=list(view_history['user_id'].unique()).index(st.session_state.user_id)
 )
 
-# keep lambda in session state so genre page can access it
 if "lambda_param" not in st.session_state:
     st.session_state.lambda_param = 0.5
 
@@ -79,7 +103,7 @@ alpha = st.select_slider(
     options=["More personalized", "Balanced", "More diverse"],
     value="Balanced"
 )
-alpha_map = {"More personalized": 0.0, "Balanced": 0.5, "More diverse": 1.0}
+alpha_map = {"More personalized": 0.2, "Balanced": 0.5, "More diverse": 0.8}
 st.session_state.lambda_param = alpha_map[alpha]
 
 results = recommendation_collaborative(
