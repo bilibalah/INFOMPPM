@@ -45,14 +45,14 @@ def cosine_similarity_def(user_profile, programs_tfidf):
 
     return sim_df
 
-def top_50_recommendations(user_id, similarity_df, view_history, genres, threshold_amount=50):
+def top_50_recommendations(user_id, similarity_df, view_history, genres, threshold_value=0.6):
     # Adjust this threshold to whatever we need for the exposure fairness and diversity/mmr
     similarity_df = similarity_df.transpose().sort_values(by=user_id, ascending=False)
     similarity_df = pd.merge(similarity_df, pd.read_csv("data/programs.csv"), on="program_id", how="left").dropna()
     similarity_df = similarity_df[~similarity_df['program_id'].isin(view_history[view_history["user_id"] == user_id]['program_id'])]
     similarity_df = similarity_df.loc[similarity_df['category'].isin(genres)]
 
-    return similarity_df[similarity_df[user_id]>= 0.6]
+    return similarity_df[similarity_df[user_id]>= threshold_value]
 
 def exposure_fairness(top_50_recommendations):
     top_50_recommendations = top_50_recommendations.sort_values(by="inclusion_score", ascending=False).reset_index(drop=True)
