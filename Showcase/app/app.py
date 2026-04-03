@@ -6,17 +6,17 @@ import numpy as np
 
 
 def user_profile_def(user_id, view_history, programs, programs_tfidf, genres):
-    view_history = pd.read_csv("data/view_history.csv")
+    view_history = pd.read_csv("../data/view_history.csv")
     view_history_user = view_history[view_history["user_id"] == user_id]
 
-    programs = pd.read_csv("data/programs.csv")
-    view_history_user = pd.merge(view_history_user, pd.read_csv("data/programs.csv")[["program_id", "category"]], on="program_id", how="left")
+    programs = pd.read_csv("../data/programs.csv")
+    view_history_user = pd.merge(view_history_user, pd.read_csv("../data/programs.csv")[["program_id", "category"]], on="program_id", how="left")
     if len(view_history_user[view_history_user['category'].isin(genres)]) == 0:
         genres = view_history_user["category"].dropna().unique().tolist()
     view_history_user = view_history_user.loc[view_history_user['category'].isin(genres)]
     view_history_user = view_history_user.drop('category', axis=1)
 
-    programs_tfidf = pd.read_csv("data/programs_tfidf.csv")
+    programs_tfidf = pd.read_csv("../data/programs_tfidf.csv")
 
     user_profile = pd.merge(view_history_user, programs_tfidf, on="program_id", how="left")
     user_profile = user_profile.dropna(axis=0)
@@ -47,7 +47,7 @@ def cosine_similarity_def(user_profile, programs_tfidf):
 def top_50_recommendations(user_id, similarity_df, view_history, genres, threshold_amount=50):
     # Adjust this threshold to whatever we need for the exposure fairness and diversity/mmr
     similarity_df = similarity_df.transpose().sort_values(by=user_id, ascending=False)
-    similarity_df = pd.merge(similarity_df, pd.read_csv("data/programs.csv"), on="program_id", how="left").dropna()
+    similarity_df = pd.merge(similarity_df, pd.read_csv("../data/programs.csv"), on="program_id", how="left").dropna()
     similarity_df = similarity_df[~similarity_df['program_id'].isin(view_history[view_history["user_id"] == user_id]['program_id'])]
     similarity_df = similarity_df.loc[similarity_df['category'].isin(genres)]
 
@@ -115,7 +115,7 @@ def content_diversity(fairness_df, programs_tfidf, top_n=15, lambda_param=0.5):
 
 def recommendation_content(user_id, view_history, programs, programs_tfidf, genres):
     if len(genres) == 0:
-        genres = pd.merge(pd.read_csv("data/view_history.csv"), pd.read_csv("data/programs.csv"), on="program_id", how="left")["category"].unique().tolist()
+        genres = pd.merge(pd.read_csv("../data/view_history.csv"), pd.read_csv("../data/programs.csv"), on="program_id", how="left")["category"].unique().tolist()
 
     user_profile = user_profile_def(user_id, view_history, programs, programs_tfidf, genres)
     
@@ -129,6 +129,4 @@ def recommendation_content(user_id, view_history, programs, programs_tfidf, genr
 
     return final_recs
 
-os.chdir("/home/anass/university/msc_applied_data_science/INFOMPPM/INFOMPPM") # Comment it out when you run it
-
-recommendation_content("U99", pd.read_csv("data/view_history.csv"), pd.read_csv("data/programs.csv"), pd.read_csv("data/programs_tfidf.csv"), ["entertainment"])
+recommendation_content("U99", pd.read_csv("../data/view_history.csv"), pd.read_csv("../data/programs.csv"), pd.read_csv("../data/programs_tfidf.csv"), ["entertainment"])
