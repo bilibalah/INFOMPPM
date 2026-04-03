@@ -5,22 +5,14 @@ import pandas as pd
 # Data loading functions with caching
 @st.cache_data
 def load_data():
-    df_synth_simple = pd.read_csv('synthetic_view_history_simple.csv')
+    df_synth_simple = pd.read_csv('../data/synthetic_view_history_simple.csv')
 
     files = [
-    'data/documentaries.pkl',
-    'data/comedy.pkl',
-    'data/sports.pkl',
-    'data/science-and-nature.pkl',
-    'data/arts.pkl',
-    'data/cbbc.pkl',
-    'data/entertainment.pkl',
-    'data/films.pkl',
-    'data/from-the-archives.pkl',
-    'data/history.pkl',
-    'data/lifestyle.pkl',
-    'data/music.pkl',
-    'data/signed.pkl']
+    '../data/bbc/documentaries.pkl',
+    '../data/bbc/comedy.pkl',
+    '../data/bbc/sports.pkl',
+    '../data/bbc/science-and-nature.pkl',
+    ]
     df = pd.concat([pd.read_pickle(f) for f in files], ignore_index=True)
     df = df.dropna(subset=['synopsis_large']).reset_index(drop=True)
 
