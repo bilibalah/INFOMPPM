@@ -1,6 +1,7 @@
 import streamlit as st
 from similarity import similarity_engine, hybrid_engine, mmr_recommendations
 import pandas as pd
+from template import display_recommendations
 
 # Data loading functions with caching
 @st.cache_data
@@ -35,7 +36,6 @@ def load_hybrid(_df, _user_df, _content_matrix, alpha):
     return hybrid_engine(_df, _user_df, _content_matrix, alpha)
 
 
-
 # Main Streamlit app
 df, user_df = load_data()
 content_matrix, tfidf_matrix, tfidf = load_similarity(df)
@@ -51,11 +51,11 @@ alpha = st.select_slider(
 )
 
 # Map slider choice to alpha value for blending
-alpha_map = {"More personalized": 0.2, "Balanced": 0.5, "More diverse": 0.8}
-alpha_val = alpha_map[alpha]
+lambda_map = {"More personalized": 0.2, "Balanced": 0.5, "More diverse": 0.8}
+lambda_val = lambda_map[alpha]
 
 # Load the hybrid similarity matrix based on user selection
-collab_matrix, hybrid_matrix = load_hybrid(df, user_df, content_matrix, alpha_val)
+collab_matrix, hybrid_matrix = load_hybrid(df, user_df, content_matrix, lambda_val)
 
 
 # Placeholder functions for user interactions
@@ -84,44 +84,6 @@ def on_save(user_id, title, saved: bool):
     """
     pass
 
-
-# Function to display recommendations in Streamlit
-def display_recommendations(results, user_id):
-    for _, row in results.iterrows():
-        save_key = f"save_{row['title']}"
-        if save_key not in st.session_state:
-            st.session_state[save_key] = False
-
-        if ':' in row['title']:
-            show_name, episode_name = row['title'].split(':', 1)
-        else:
-            show_name = row['title']
-            episode_name = None
-
-        col1, col2 = st.columns([1, 2])
-        with col1:
-            if pd.notna(row['image']):
-                st.image(row['image'], use_container_width=True)
-        with col2:
-            st.markdown(f"### {show_name.strip()}")
-            if episode_name:
-                st.markdown(f"*{episode_name.strip()}*")
-            st.caption(f"📂 {row['category']}  ·  ⏱ {row['duration_txt']}")
-            st.write(row['synopsis_small'])
-
-            btn_col1, btn_col2 = st.columns([1, 1])
-            with btn_col1:
-                if st.button("▶ Play", key=f"play_{row['title']}", use_container_width=True):
-                    on_play(user_id, row['title'])  # TODO: implement
-                    st.toast(f"Playing {show_name.strip()}...")
-            with btn_col2:
-                label = "✅ Saved" if st.session_state[save_key] else "🔖 Save"
-                if st.button(label, key=f"btn_{row['title']}", use_container_width=True):
-                    st.session_state[save_key] = not st.session_state[save_key]
-                    on_save(user_id, row['title'], st.session_state[save_key])  # TODO: implement
-                    st.rerun()
-
-        st.divider()
 
 # Generate and display recommendations based on user input
 results = mmr_recommendations(user_id, user_df, df, hybrid_matrix, content_matrix)
